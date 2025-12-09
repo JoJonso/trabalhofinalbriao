@@ -1,7 +1,8 @@
-import axios from 'axios';
+import axios from "axios";
 
-const gameAPI = axios.create({
-    baseURL:"http://localhost:3000"
-})
+const gameAPI = axios.create({ baseURL: "http://localhost:3000/games" });
 
-export default gameAPI;
+export const getGames = async () => {
+  const res = await gameAPI.get("/");
+  return res.data;
+};

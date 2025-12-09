@@ -1,36 +1,16 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { useState } from "react";
+import CreateReview from "./components/CreateReview";
+import ReviewList from "./components/ReviewList";
 
-import GameList from './components/GameList'
-import gameAPI from './services/gameApi'
+export default function App() {
+  const [refreshKey, setRefreshKey] = useState(0);
 
-
-function App() {
-  const [list,setList] = useState([])
-
-  async function listGames() {
-    try{
-      const res = await gameAPI.get('/listGames');
-      console.log(res.data);
-
-      setList(res.data);
-
-    }catch(error){
-       console.log("Failed to load games:" + error);
-    }
-  }
-
-  useEffect(() => {
-    listGames()
-  },[])
+  const triggerRefresh = () => setRefreshKey(prev => prev + 1);
 
   return (
-    <>
-      <div>
-          <GameList data={list}/>
-      </div>
-    </>
-  )
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
+      <CreateReview onReviewCreated={triggerRefresh} />
+      <ReviewList refreshTrigger={refreshKey} />
+    </div>
+  );
 }
-
-export default App

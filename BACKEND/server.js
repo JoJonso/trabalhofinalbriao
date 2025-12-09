@@ -1,18 +1,25 @@
-const express = require('express');
-const cors = require('cors');
+import express from "express";
+import cors from "cors";
+import gamesRoutes from "./routes/gamesRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 
 const app = express();
 const PORT = 3000;
 
-const reviewRoutes = require('./routes/reviewRoutes');
-const gamesRoutes = require('./routes/gamesRoutes');
+// CORS
+app.use(cors({
+  origin: "*",
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"]
+}));
 
-app.use(cors());
 app.use(express.json());
-app.use(reviewRoutes);
-app.use(gamesRoutes);
 
+// Rotas
+app.use("/games", gamesRoutes);
+app.use("/reviews", reviewRoutes);
 
-app.listen(PORT, () => {
-  console.log("Servidor rodando em http://localhost:"+ PORT);
-});
+// Rota raiz
+app.get("/", (req,res) => res.send("Backend rodando!"));
+
+// Servidor
+app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));

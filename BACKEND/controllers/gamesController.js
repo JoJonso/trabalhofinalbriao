@@ -1,15 +1,13 @@
-const {PrismaClient} = require('@prisma/client');
-
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-module.exports = {
-    async listGames(req,res) {
-        try{
-            const getGames = await prisma.games.findMany();
-
-            res.status(200).json(getGames);
-        }catch(error){
-            res.status(500).json({"Error to list Games:": error})
-        }
-    },
-}
+export default {
+  async listGames(req,res) {
+    try{
+      const games = await prisma.games.findMany();
+      res.json(games);
+    } catch(err) {
+      res.status(500).json({error:"Erro ao listar games"});
+    }
+  }
+};

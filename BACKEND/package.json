@@ -1,12 +1,14 @@
 {
   "name": "aulaprisma_0",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
-  },
+  "dev": "node index.js",
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:coverage": "jest --coverage"
+},
   "author": "E.W.B.",
   "license": "ISC",
   "description": "",

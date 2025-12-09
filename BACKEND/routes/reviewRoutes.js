@@ -1,11 +1,11 @@
-const express = require('express');
-const controller = require('../controllers/reviewController');
+import express from "express";
+import reviewController from "../controllers/reviewController.js";
+
 const router = express.Router();
 
+router.get("/", reviewController.listReviews);
+router.post("/", reviewController.postReviews);
+router.put("/:id", reviewController.updateReviews);
+router.delete("/:id", reviewController.deleteReviews);
 
-router.get('/listReviews',controller.listReviews);
-router.post('/postReview',controller.postReviews);
-router.put('/updateReview/:id',controller.updateReviews);
-router.delete('/deleteReview/:id',controller.deleteReviews);
-
-module.exports = router;
+export default router;

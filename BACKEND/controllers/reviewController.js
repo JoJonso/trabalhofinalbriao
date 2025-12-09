@@ -1,74 +1,46 @@
-const {PrismaClient} = require('@prisma/client');
-
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-module.exports = {
-    async listReviews(req,res) {
-        try{
-            const getReviews = await prisma.review.findMany();
+export default {
+  async listReviews(req,res) {
+    try{
+      const reviews = await prisma.review.findMany();
+      res.json(reviews);
+    } catch(err){
+      res.status(500).json({error:"Erro ao listar reviews"});
+    }
+  },
 
-            res.status(200).json(getReviews);
-        }catch(error){
-            res.status(500).json({"Error to list Reviews:": error})
-        }
-    },
+  async postReviews(req,res){
+    try{
+      const review = await prisma.review.create({ data:req.body });
+      res.status(201).json(review);
+    } catch(err){
+      res.status(500).json({error:"Erro ao criar review"});
+    }
+  },
 
-    async postReviews(req,res) {
-        try{
-            const {gameThumb,gameName,review,rating} = req.body;
+  async updateReviews(req,res){
+    try{
+      const { id } = req.params;
+      const { review, rating } = req.body;
+      const updated = await prisma.review.update({
+        where:{ id: Number(id) },
+        data:{ review, rating: Number(rating) }
+      });
+      res.json(updated);
+    } catch(err){
+      res.status(500).json({error:"Erro ao atualizar review"});
+    }
+  },
 
-            const postReview = await prisma.review.create({
-                data: {
-                    gameThumb: gameThumb,
-                    gameName: gameName,
-                    review: review,
-                    rating: Number(Math.max(rating,5))
-                }
-            });
-
-            res.status(201).json(postReview);
-        }catch(error){
-            res.status(500).json({"Error to upload the review": error})
-        }
-    },
-
-    async updateReviews(req,res) {
-        try{
-
-            const {id} = req.params;
-            const {review,rating} = req.body;
-
-            const updateReview = await prisma.review.update({
-                where: {
-                    id:parseInt(id)
-                },
-                data: {
-                    review: review,
-                    rating: Number(Math.min(rating,5))
-                }
-
-            });
-
-            res.status(200).json(updateReview);
-        }catch(error){
-            res.status(500).json({"Error to upload the review": error})
-        }
-    },
-
-    async deleteReviews(req,res) {
-        try{
-
-            const {id} = req.params;
-
-            const deleteReview = await prisma.review.delete({
-                where: {
-                    id:parseInt(id)
-                }
-            })
-
-            res.status(200).json(deleteReview);
-        }catch(error){
-            res.status(500).json({"Error to upload the review": error})
-        }
-    },
-}
+  async deleteReviews(req,res){
+    try{
+      const { id } = req.params;
+      const deleted = await prisma.review.delete({ where:{ id: Number(id) } });
+      res.json(deleted);
+    } catch(err){
+      res.status(500).json({error:"Erro ao deletar review"});
+    }
+  }
+};

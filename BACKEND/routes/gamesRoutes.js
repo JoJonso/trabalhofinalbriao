@@ -1,9 +1,8 @@
-const express = require('express');
-const controller = require('../controllers/gamesController');
+import express from "express";
+import gamesController from "../controllers/gamesController.js";
+
 const router = express.Router();
 
+router.get("/", gamesController.listGames);
 
-router.get('/listGames',controller.listGames);
-
-
-module.exports = router;
+export default router;
