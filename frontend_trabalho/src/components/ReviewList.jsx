@@ -3,99 +3,84 @@ import { getReviews, updateReview, deleteReview } from "../services/reviewApi";
 
 export default function ReviewList({ refreshTrigger }) {
   const [reviews, setReviews] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-  const [editedReview, setEditedReview] = useState("");
-  const [editedRating, setEditedRating] = useState(0);
+  const [editing, setEditing] = useState({ id: null, text: "", rating: 0 });
 
-  // Carrega todas as reviews
-  const loadReviews = async () => {
+  const load = async () => {
     const data = await getReviews();
-    setReviews(data);
-    setEditingId(null);
+    setReviews(data || []);
+    setEditing({ id: null, text: "", rating: 0 });
   };
 
   useEffect(() => {
-    loadReviews();
+    load();
   }, [refreshTrigger]);
 
-  // Começar edição
-  const startEdit = (review) => {
-    setEditingId(review.id);
-    setEditedReview(review.review);
-    setEditedRating(review.rating);
-  };
+  const startEdit = (r) => setEditing({ id: r.id, text: r.review, rating: r.rating ?? 0 });
+  const cancelEdit = () => setEditing({ id: null, text: "", rating: 0 });
 
-  // Cancelar edição
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditedReview("");
-    setEditedRating(0);
-  };
-
-  // Salvar edição
   const saveEdit = async (id) => {
-    if (!editedReview || editedRating < 0 || editedRating > 5) return;
-
-    await updateReview(Number(id), { review: editedReview, rating: editedRating });
-    loadReviews(); // Atualiza lista
+    if (!editing.text || editing.rating < 0 || editing.rating > 5) return;
+    await updateReview(Number(id), { review: editing.text, rating: editing.rating });
+    load();
   };
 
-  
   const handleDelete = async (id) => {
     if (confirm("Deseja realmente deletar esta review?")) {
       await deleteReview(Number(id));
-      loadReviews(); // Atualiza lista
+      load();
     }
   };
 
-  return (
-    <div style={{ border: "1px solid #ccc", padding: "10px" }}>
-      <h2>Minhas Reviews</h2>
-      {reviews.length === 0 ? <p>Nenhuma review ainda.</p> :
-        reviews.map(r => (
-          <div key={r.id} style={{ borderBottom: "1px solid #eee", padding: "10px 0" }}>
-            <img
-              src={r.gameThumb}
-              width={50}
-              alt={r.gameName}
-              style={{ verticalAlign: "middle", marginRight: "10px" }}
-            />
-            <strong>{r.gameName}</strong>
+  const toggleEditingRating = (i) => setEditing((prev) => ({ ...prev, rating: prev.rating === i ? 0 : i }));
 
-            {editingId === r.id ? (
-              <>
-                <div style={{ marginTop: "5px" }}>
-                  <textarea
-                    value={editedReview}
-                    onChange={(e) => setEditedReview(e.target.value)}
-                    rows={2}
-                    style={{ width: "100%" }}
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    max="5"
-                    value={editedRating}
-                    onChange={(e) => setEditedRating(Number(e.target.value))}
-                    style={{ width: "50px", marginTop: "5px" }}
-                  />
-                  <div style={{ marginTop: "5px" }}>
-                    <button onClick={() => saveEdit(r.id)}>Salvar</button>
-                    <button onClick={cancelEdit} style={{ marginLeft: "5px" }}>Cancelar</button>
-                  </div>
+  return (
+    <div className="recent-reviews">
+      <h2 style={{ marginTop: 0 }}>Suas reviews recentes</h2>
+      {reviews.length === 0 && <div className="list-empty">Nenhuma review ainda.</div>}
+      <div className="recent-list">
+        {reviews.map((r) => (
+          <div key={r.id} className="review-item" style={{ marginBottom: 12 }}>
+            <img className="review-thumb" src={r.gameThumb} alt={r.gameName} />
+            
+            <div className="review-meta">
+              <div className="review-title" style={{ alignItems: "flex-start" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0 }}>
+                  <strong style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.gameName}</strong>
+                  <span style={{ color: "var(--txt-muted)", fontSize: 12 }}>{new Date(r.created_at || r.createdAt || Date.now()).toLocaleDateString()}</span>
                 </div>
-              </>
-            ) : (
-              <>
-                <p>{r.review}</p>
-                <p>Nota: {r.rating}/5</p>
-                <button onClick={() => startEdit(r)}>Editar</button>
-                <button onClick={() => handleDelete(r.id)} style={{ marginLeft: "5px" }}>Excluir</button>
-              </>
-            )}
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: 8 }}>
+                  <button className="ghost" onClick={() => startEdit(r)} aria-label={`Editar review ${r.id}`}>Editar</button>
+                  <button className="ghost" onClick={() => handleDelete(r.id)} aria-label={`Excluir review ${r.id}`}>Excluir</button>
+                </div>
+              </div>
+
+              {editing.id === r.id ? (
+                <>
+                  <textarea className="input" rows={3} value={editing.text} onChange={(e) => setEditing((prev) => ({ ...prev, text: e.target.value }))} style={{ marginTop: 8, width: "100%", boxSizing: "border-box" }} />
+                  <div className="stars editing-stars" style={{ margin: "8px 0", alignItems: "center" }}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <button key={i} type="button" className={`star ${i <= editing.rating ? "filled" : ""}`} onClick={() => toggleEditingRating(i)} style={{ background: "transparent", border: "none", fontSize: 18, width: 28, height: 28 }} aria-label={`Dar ${i} estrela(s)`}>★</button>
+                    ))}
+                  </div>
+                  <div className="controls" style={{ marginTop: 8 }}>
+                    <button className="btn" onClick={() => saveEdit(r.id)}>Salvar</button>
+                    <button className="ghost" onClick={cancelEdit} style={{ marginLeft: 8 }}>Cancelar</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="review-text">{r.review}</p>
+                  <div className="review-footer" style={{ display: "flex", alignItems: "center", marginTop: 8 }}>
+                    <div className="stars" aria-hidden>
+                      {[1, 2, 3, 4, 5].map((i) => <span key={i} className={`star ${i <= r.rating ? "filled" : ""}`}>★</span>)}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        ))
-      }
+        ))}
+      </div>
     </div>
   );
 }
